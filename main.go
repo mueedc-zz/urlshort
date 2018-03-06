@@ -1,11 +1,19 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
 func main() {
+	var jsonFile, yamlFile string
+	flag.StringVar(&jsonFile, "json", "", "path to json file.")
+	flag.StringVar(&yamlFile, "yaml", "", "path to yaml file.")
+
+	flag.Parse()
+
 	mux := defaultMux()
 
 	pathsToUrls := map[string]string{
@@ -13,19 +21,34 @@ func main() {
 		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
 	}
 	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
-	yaml := `
-	- path: /urlshort
-	  url: https://github.com/gophercises/urlshort
-	- path: /urlshort-final
-	  url: https://github.com/gophercises/urlshort/tree/solution
-	`
 
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
-	if err != nil {
-		panic(err)
+	if jsonFile != "" {
+		jsonData, err := ioutil.ReadFile(jsonFile)
+		if err != nil {
+			panic(err)
+		}
+		jsonHandler, err := JSONHandler([]byte(jsonData), mapHandler)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Jamming on port 8080")
+		http.ListenAndServe(":8080", jsonHandler)
+	} else if yamlFile != "" {
+		yamlData, err := ioutil.ReadFile(yamlFile)
+		if err != nil {
+			panic(err)
+		}
+
+		yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Mixing it up on port 8080")
+		http.ListenAndServe(":8080", yamlHandler)
+	} else {
+		fmt.Println("Riffing on port 8080")
+		http.ListenAndServe(":8080", mapHandler)
 	}
-	fmt.Println("Mixing it up on port 8080")
-	http.ListenAndServe(":8080", yamlHandler)
 }
 
 func defaultMux() *http.ServeMux {
