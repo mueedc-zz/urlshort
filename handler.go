@@ -28,7 +28,7 @@ func YAMLHandler(ymlBytes []byte, fallback http.Handler) (http.HandlerFunc, erro
 }
 
 func JSONHandler(jsonBytes []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	pathUrls, err := parseJson(jsonBytes)
+	pathUrls, err := parseJSON(jsonBytes)
 	if err != nil {
 		return nil, err
 	}
